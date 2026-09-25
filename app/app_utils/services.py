@@ -30,6 +30,7 @@ from google.adk.cli.utils.service_factory import create_session_service_from_opt
 
 SESSION_SERVICE_URI = "shared://session"
 ARTIFACT_SERVICE_URI = "shared://artifact"
+MEMORY_SERVICE_URI = "shared://memory"
 
 _AGENT_DIR = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -67,6 +68,45 @@ def get_artifact_service():
     return InMemoryArtifactService()
 
 
+@functools.cache
+def get_memory_service():
+    """Process-wide memory service: Vertex AI Memory Bank when deployed.
+
+    The traveller's preferences, allergies, and past trips live here. Without
+    this registered, the agent's `load_memory` / `preload_memory` tools read from
+    an empty bank and every conversation starts from scratch — which is what
+    happened before, because the memory service was constructed in agent.py and
+    then never passed to a Runner.
+    """
+    if uri := os.environ.get("MEMORY_SERVICE_URI"):
+        from google.adk.cli.utils.service_factory import (
+            create_memory_service_from_options,
+        )
+
+        return create_memory_service_from_options(
+            base_dir=_AGENT_DIR, memory_service_uri=uri
+        )
+
+    agent_engine_id = os.environ.get("GOOGLE_CLOUD_AGENT_ENGINE_ID")
+    if agent_engine_id:
+        try:
+            from google.adk.memory import VertexAiMemoryBankService
+
+            return VertexAiMemoryBankService(
+                project=os.environ.get("GOOGLE_CLOUD_PROJECT"),
+                location=os.environ.get("GOOGLE_CLOUD_AGENT_ENGINE_LOCATION")
+                or os.environ.get("GOOGLE_CLOUD_LOCATION"),
+                agent_engine_id=agent_engine_id,
+            )
+        except Exception:  # noqa: BLE001 - fall back rather than fail startup.
+            pass
+
+    from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
+
+    return InMemoryMemoryService()
+
+
 _registry = get_service_registry()
 _registry.register_session_service("shared", lambda uri, **kw: get_session_service())
 _registry.register_artifact_service("shared", lambda uri, **kw: get_artifact_service())
+_registry.register_memory_service("shared", lambda uri, **kw: get_memory_service())

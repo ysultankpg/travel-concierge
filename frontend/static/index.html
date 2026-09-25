@@ -1,466 +1,950 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="auto">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Travel Concierge AI</title>
-<!-- Google Fonts & Icons -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Travel Concierge — an AI travel planner that recommends destinations, builds itineraries, and checks live conditions.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0b1020" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<title>Travel Concierge</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --accent: #0d9488;
-    --accent-hover: #0f766e;
-    --accent-gradient: linear-gradient(135deg, #0d9488 0%, #0284c7 100%);
-    --bg: #f8fafc;
-    --card-bg: #ffffff;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --border: #e2e8f0;
-    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
-    --shadow-md: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
+/* ============================================================================
+   Design tokens. Dark mode is driven by a single [data-theme] attribute on
+   <html>, so every surface flips together and the user's OS preference is the
+   default. The original UI was light-only with hardcoded hex values.
+   ========================================================================== */
+:root {
+  --brand-500:#0d9488; --brand-600:#0f766e; --brand-400:#2dd4bf;
+  --accent-500:#0284c7;
+  --grad: linear-gradient(135deg,#0d9488 0%,#0284c7 100%);
+
+  --bg:#f6f8fb;
+  --bg-elev:#ffffff;
+  --bg-sunken:#eef2f7;
+  --surface:#ffffff;
+  --text:#0f172a;
+  --text-dim:#5b6878;
+  --text-faint:#8494a6;
+  --border:#e3e9f0;
+  --border-strong:#cfd8e3;
+
+  --user-bubble: var(--grad);
+  --user-text:#ffffff;
+
+  --ok:#16a34a; --ok-bg:#f0fdf4; --ok-border:#bbf7d0;
+  --warn:#b45309; --warn-bg:#fffbeb; --warn-border:#fde68a;
+  --err:#b91c1c;  --err-bg:#fef2f2;  --err-border:#fecaca;
+
+  --shadow-xs:0 1px 2px rgba(15,23,42,.05);
+  --shadow-sm:0 1px 3px rgba(15,23,42,.07),0 1px 2px rgba(15,23,42,.04);
+  --shadow-md:0 4px 16px -2px rgba(15,23,42,.09);
+  --shadow-lg:0 12px 32px -8px rgba(15,23,42,.16);
+
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:22px;
+  --maxw:860px;
+  --font:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="auto"] {
+    --bg:#0b1020; --bg-elev:#141b2f; --bg-sunken:#0e1424;
+    --surface:#151d33;
+    --text:#e9eef7; --text-dim:#9aa9bf; --text-faint:#6b7c95;
+    --border:#25304a; --border-strong:#364364;
+    --ok:#4ade80; --ok-bg:#0d2a1a; --ok-border:#1c5236;
+    --warn:#fbbf24; --warn-bg:#2a2010; --warn-border:#5a441a;
+    --err:#f87171;  --err-bg:#2c1416;  --err-border:#5e2428;
+    --shadow-xs:0 1px 2px rgba(0,0,0,.4);
+    --shadow-sm:0 1px 3px rgba(0,0,0,.45);
+    --shadow-md:0 4px 16px -2px rgba(0,0,0,.5);
+    --shadow-lg:0 12px 32px -8px rgba(0,0,0,.6);
   }
+}
+:root[data-theme="dark"] {
+  --bg:#0b1020; --bg-elev:#141b2f; --bg-sunken:#0e1424;
+  --surface:#151d33;
+  --text:#e9eef7; --text-dim:#9aa9bf; --text-faint:#6b7c95;
+  --border:#25304a; --border-strong:#364364;
+  --ok:#4ade80; --ok-bg:#0d2a1a; --ok-border:#1c5236;
+  --warn:#fbbf24; --warn-bg:#2a2010; --warn-border:#5a441a;
+  --err:#f87171;  --err-bg:#2c1416;  --err-border:#5e2428;
+  --shadow-xs:0 1px 2px rgba(0,0,0,.4);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.45);
+  --shadow-md:0 4px 16px -2px rgba(0,0,0,.5);
+  --shadow-lg:0 12px 32px -8px rgba(0,0,0,.6);
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  
-  body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    background: var(--bg);
-    color: var(--text-main);
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
-  }
+*,*::before,*::after{box-sizing:border-box;}
+*{margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:var(--font);
+  background:var(--bg); color:var(--text);
+  display:flex; flex-direction:column;
+  /* dvh keeps the composer above a mobile keyboard, which 100vh does not */
+  height:100dvh; overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  font-size:15px; line-height:1.55;
+}
 
-  /* Header */
-  header {
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    padding: 0.85rem 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    z-index: 10;
-  }
+/* Respect users who ask for less motion. */
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;}
+}
 
-  .header-title {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-weight: 700;
-    font-size: 1.15rem;
-    background: var(--accent-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
+:focus-visible{outline:2px solid var(--brand-500);outline-offset:2px;border-radius:4px;}
 
-  .status-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #16a34a;
-    background: #f0fdf4;
-    padding: 0.3rem 0.65rem;
-    border-radius: 20px;
-    border: 1px solid #bbf7d0;
-  }
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 
-  .status-dot {
-    width: 7px;
-    height: 7px;
-    background: #16a34a;
-    border-radius: 50%;
-    box-shadow: 0 0 0 2px #dcfce7;
-    animation: pulse 2s infinite;
-  }
+.skip-link{position:absolute;left:-999px;top:8px;z-index:100;background:var(--brand-500);
+  color:#fff;padding:.5rem .9rem;border-radius:var(--r-sm);font-weight:600;}
+.skip-link:focus{left:8px;}
 
-  @keyframes pulse {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
-  }
+/* ---------------------------------------------------------------- header --- */
+header{
+  background:color-mix(in srgb,var(--bg-elev) 88%,transparent);
+  backdrop-filter:blur(14px) saturate(1.5);
+  -webkit-backdrop-filter:blur(14px) saturate(1.5);
+  border-bottom:1px solid var(--border);
+  padding:.7rem max(1rem,env(safe-area-inset-left)) .7rem 1rem;
+  display:flex;align-items:center;gap:.75rem;
+  flex:0 0 auto;z-index:20;
+}
+.brand{display:flex;align-items:center;gap:.6rem;margin-right:auto;min-width:0;}
+.brand-mark{
+  width:34px;height:34px;flex:0 0 auto;border-radius:10px;background:var(--grad);
+  display:grid;place-items:center;font-size:1.05rem;box-shadow:var(--shadow-sm);
+}
+.brand-text{min-width:0;}
+.brand-name{
+  font-weight:800;font-size:1.02rem;letter-spacing:-.02em;line-height:1.2;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.brand-sub{font-size:.72rem;color:var(--text-faint);font-weight:500;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-  /* Chat Log */
-  #log {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1.5rem;
-    max-width: 820px;
-    width: 100%;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
-    scroll-behavior: smooth;
-  }
+.pill{
+  display:inline-flex;align-items:center;gap:.4rem;font-size:.74rem;font-weight:600;
+  padding:.3rem .6rem;border-radius:999px;border:1px solid var(--ok-border);
+  background:var(--ok-bg);color:var(--ok);white-space:nowrap;
+}
+.pill[data-state="offline"]{border-color:var(--err-border);background:var(--err-bg);color:var(--err);}
+.pill[data-state="checking"]{border-color:var(--warn-border);background:var(--warn-bg);color:var(--warn);}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex:0 0 auto;}
+.pill[data-state="online"] .dot{animation:ping 2.4s ease-out infinite;}
+@keyframes ping{
+  0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ok) 60%,transparent);}
+  70%{box-shadow:0 0 0 7px transparent;}
+  100%{box-shadow:0 0 0 0 transparent;}
+}
 
-  /* Dialogue Message Wrapper */
-  .msg {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    max-width: 85%;
-    animation: fadeInUp 0.25s ease-out forwards;
-  }
+.icon-btn{
+  width:34px;height:34px;flex:0 0 auto;display:grid;place-items:center;
+  border:1px solid var(--border);background:var(--bg-elev);color:var(--text-dim);
+  border-radius:10px;cursor:pointer;font-size:1rem;
+  transition:background .15s,color .15s,border-color .15s,transform .12s;
+}
+.icon-btn:hover{color:var(--brand-500);border-color:var(--brand-400);transform:translateY(-1px);}
+.icon-btn:active{transform:translateY(0);}
 
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+/* ------------------------------------------------------------------ log --- */
+#scroll{flex:1 1 auto;overflow-y:auto;overscroll-behavior-y:contain;scroll-behavior:smooth;}
+#log{
+  max-width:var(--maxw);width:100%;margin:0 auto;
+  padding:1.25rem max(1rem,env(safe-area-inset-left)) .5rem;
+  display:flex;flex-direction:column;gap:1.1rem;
+}
 
-  .msg.user {
-    align-self: flex-end;
-    align-items: flex-end;
-  }
+/* ------------------------------------------------------------- welcome --- */
+.welcome{padding:2rem 0 1rem;text-align:center;animation:rise .4s ease-out both;}
+.welcome h1{
+  font-size:clamp(1.5rem,4.5vw,2rem);font-weight:800;letter-spacing:-.03em;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;margin-bottom:.5rem;line-height:1.2;
+}
+.welcome p{color:var(--text-dim);max-width:46ch;margin:0 auto 1.5rem;font-size:.95rem;}
+.starters{display:grid;gap:.6rem;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
+  text-align:left;max-width:600px;margin:0 auto;}
+.starter{
+  display:flex;gap:.7rem;align-items:flex-start;
+  background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:.8rem .9rem;cursor:pointer;font:inherit;color:inherit;text-align:left;
+  transition:border-color .16s,transform .16s,box-shadow .16s;
+}
+.starter:hover{border-color:var(--brand-400);transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.starter-ico{font-size:1.1rem;line-height:1.3;flex:0 0 auto;}
+.starter-title{font-weight:700;font-size:.87rem;margin-bottom:.1rem;}
+.starter-desc{font-size:.78rem;color:var(--text-faint);line-height:1.4;}
 
-  .msg.agent {
-    align-self: flex-start;
-    align-items: flex-start;
-  }
+/* ------------------------------------------------------------ messages --- */
+.msg{display:flex;flex-direction:column;gap:.35rem;max-width:88%;animation:rise .28s ease-out both;}
+@keyframes rise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.msg.user{align-self:flex-end;align-items:flex-end;}
+.msg.agent{align-self:flex-start;align-items:flex-start;width:100%;}
+.msg-meta{display:flex;align-items:center;gap:.4rem;font-size:.72rem;font-weight:600;
+  color:var(--text-faint);padding:0 .25rem;}
+.bubble{
+  padding:.8rem 1.05rem;border-radius:var(--r-lg);background:var(--bg-elev);
+  border:1px solid var(--border);box-shadow:var(--shadow-xs);
+  font-size:.94rem;line-height:1.62;overflow-wrap:anywhere;
+}
+.msg.user .bubble{
+  background:var(--user-bubble);color:var(--user-text);border:none;
+  border-bottom-right-radius:5px;box-shadow:0 4px 14px -2px color-mix(in srgb,var(--brand-500) 40%,transparent);
+}
+.msg.agent .bubble{border-bottom-left-radius:5px;}
+/* A rich card supplies its own chrome, so the bubble gets out of the way. */
+.bubble.rich{background:none;border:none;padding:0;box-shadow:none;width:100%;}
+.bubble.err{background:var(--err-bg);border-color:var(--err-border);color:var(--err);}
 
-  .msg-author {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    padding: 0 0.2rem;
-  }
+.bubble p{margin:0 0 .6rem;}
+.bubble p:last-child{margin-bottom:0;}
+.bubble ul,.bubble ol{margin:.4rem 0 .6rem 1.2rem;}
+.bubble li{margin:.2rem 0;}
+.bubble code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
+  background:var(--bg-sunken);padding:.12em .38em;border-radius:5px;
+  border:1px solid var(--border);
+}
+.msg.user .bubble code{background:rgba(255,255,255,.18);border-color:transparent;color:inherit;}
+.bubble a{color:var(--brand-500);text-decoration:underline;text-underline-offset:2px;}
+.msg.user .bubble a{color:#fff;}
+.bubble strong{font-weight:700;}
 
-  .bubble {
-    padding: 0.85rem 1.1rem;
-    border-radius: 18px;
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    font-size: 0.95rem;
-    line-height: 1.55;
-    box-shadow: var(--shadow-sm);
-    color: var(--text-main);
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
+/* typing indicator */
+.typing{display:inline-flex;gap:4px;align-items:center;padding:.25rem 0;}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--text-faint);
+  animation:bounce 1.3s ease-in-out infinite;}
+.typing i:nth-child(2){animation-delay:.16s;}
+.typing i:nth-child(3){animation-delay:.32s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.45;}30%{transform:translateY(-5px);opacity:1;}}
+.status-line{font-size:.76rem;color:var(--text-faint);font-style:italic;padding:.15rem .25rem;}
 
-  .msg.user .bubble {
-    background: var(--accent-gradient);
-    color: #ffffff;
-    border: none;
-    border-bottom-right-radius: 4px;
-    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
-  }
+.msg-actions{display:flex;gap:.3rem;opacity:0;transition:opacity .15s;}
+.msg.agent:hover .msg-actions,.msg.agent:focus-within .msg-actions{opacity:1;}
+.mini-btn{
+  border:1px solid var(--border);background:var(--bg-elev);color:var(--text-faint);
+  border-radius:6px;cursor:pointer;font:inherit;font-size:.68rem;font-weight:600;
+  padding:.16rem .45rem;transition:color .15s,border-color .15s;
+}
+.mini-btn:hover{color:var(--brand-500);border-color:var(--brand-400);}
 
-  .msg.agent .bubble {
-    border-bottom-left-radius: 4px;
-  }
+/* ------------------------------------------------------- A2UI surfaces --- */
+.a2card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:1.05rem 1.15rem;box-shadow:var(--shadow-md);max-width:100%;
+  animation:rise .3s ease-out both;
+}
+.a2card + .a2card{margin-top:.7rem;}
+.a2col{display:flex;flex-direction:column;gap:.5rem;min-width:0;}
+.a2row{display:flex;flex-direction:row;gap:.7rem;align-items:center;flex-wrap:wrap;min-width:0;}
+.a2row.between{justify-content:space-between;width:100%;}
+.a2text{margin:0;line-height:1.55;overflow-wrap:anywhere;}
+.a2text.a2-h1{font-size:1.24rem;font-weight:800;letter-spacing:-.02em;line-height:1.3;}
+.a2text.a2-h2{font-size:1.1rem;font-weight:700;letter-spacing:-.01em;line-height:1.35;}
+.a2text.a2-h3{font-size:1rem;font-weight:700;}
+.a2text.a2-h4{font-size:.92rem;font-weight:600;}
+.a2text.a2-caption{font-size:.79rem;color:var(--text-dim);}
+.a2divider{border:none;border-top:1px solid var(--border);margin:.3rem 0;width:100%;}
+.a2img{
+  width:100%;height:auto;border-radius:var(--r-md);display:block;
+  box-shadow:var(--shadow-sm);background:var(--bg-sunken);
+  aspect-ratio:16/10;object-fit:cover;
+}
+.a2img-wrap{position:relative;}
+.a2img.loading{
+  /* Shimmer while the generated image downloads, instead of a layout jump. */
+  background:linear-gradient(100deg,var(--bg-sunken) 30%,var(--border) 50%,var(--bg-sunken) 70%);
+  background-size:220% 100%;animation:shimmer 1.4s linear infinite;
+}
+@keyframes shimmer{from{background-position:180% 0;}to{background-position:-60% 0;}}
+.a2ico{font-size:1.05rem;line-height:1;flex:0 0 auto;}
 
-  .bubble.rich {
-    background: transparent;
-    border: none;
-    padding: 0;
-    box-shadow: none;
-    white-space: normal;
-    width: 100%;
-  }
+/* ------------------------------------------------------------ composer --- */
+.composer-wrap{
+  flex:0 0 auto;background:var(--bg-elev);border-top:1px solid var(--border);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.composer{max-width:var(--maxw);width:100%;margin:0 auto;padding:.7rem 1rem .85rem;}
+.chips{display:flex;gap:.45rem;overflow-x:auto;scrollbar-width:none;padding-bottom:.55rem;}
+.chips::-webkit-scrollbar{display:none;}
+.chip{
+  flex:0 0 auto;background:var(--bg-sunken);color:var(--text-dim);
+  border:1px solid var(--border);border-radius:999px;padding:.35rem .75rem;
+  font:inherit;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap;
+  transition:background .15s,color .15s,border-color .15s;
+}
+.chip:hover{background:var(--brand-500);color:#fff;border-color:var(--brand-500);}
 
-  /* Prompt Chips */
-  .footer-container {
-    background: #ffffff;
-    border-top: 1px solid var(--border);
-    max-width: 820px;
-    width: 100%;
-    margin: 0 auto;
-    border-radius: 20px 20px 0 0;
-    box-shadow: 0 -4px 12px rgba(0,0,0,0.03);
-  }
+form{
+  display:flex;gap:.5rem;align-items:flex-end;
+  background:var(--bg-sunken);border:1.5px solid var(--border);
+  border-radius:var(--r-xl);padding:.4rem .4rem .4rem .9rem;
+  transition:border-color .18s,box-shadow .18s;
+}
+form:focus-within{
+  border-color:var(--brand-500);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--brand-500) 16%,transparent);
+}
+textarea{
+  flex:1 1 auto;border:none;background:none;resize:none;font:inherit;font-size:.94rem;
+  color:var(--text);outline:none;padding:.5rem 0;max-height:160px;line-height:1.5;
+}
+textarea::placeholder{color:var(--text-faint);}
+.send{
+  width:38px;height:38px;flex:0 0 auto;border:none;border-radius:50%;
+  background:var(--grad);color:#fff;cursor:pointer;display:grid;place-items:center;
+  font-size:1rem;transition:transform .14s,opacity .18s;
+  box-shadow:0 2px 10px -2px color-mix(in srgb,var(--brand-500) 55%,transparent);
+}
+.send:hover:not(:disabled){transform:scale(1.07);}
+.send:active:not(:disabled){transform:scale(.94);}
+.send:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;}
+.send.stop{background:var(--err);}
+.hint{
+  font-size:.7rem;color:var(--text-faint);text-align:center;
+  padding-top:.5rem;
+}
 
-  .prompt-chips {
-    display: flex;
-    gap: 0.5rem;
-    padding: 0.8rem 1rem 0.2rem;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
+.jump{
+  position:absolute;right:1.1rem;bottom:.6rem;z-index:15;
+  width:34px;height:34px;border-radius:50%;border:1px solid var(--border);
+  background:var(--bg-elev);color:var(--text-dim);cursor:pointer;display:none;
+  place-items:center;box-shadow:var(--shadow-md);font-size:.95rem;
+}
+.jump.show{display:grid;}
+.scroll-host{position:relative;flex:1 1 auto;display:flex;min-height:0;}
 
-  .prompt-chips::-webkit-scrollbar { display: none; }
-
-  .chip {
-    background: #f1f5f9;
-    color: var(--text-main);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 0.45rem 0.9rem;
-    font-size: 0.825rem;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-  }
-
-  .chip:hover {
-    background: var(--accent);
-    color: #ffffff;
-    border-color: var(--accent);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(13, 148, 136, 0.2);
-  }
-
-  /* Form */
-  form {
-    display: flex;
-    gap: 0.6rem;
-    padding: 0.8rem 1rem 1rem;
-  }
-
-  input {
-    flex: 1;
-    padding: 0.85rem 1.1rem;
-    border: 1.5px solid var(--border);
-    border-radius: 14px;
-    font-size: 0.95rem;
-    font-family: inherit;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    background: #f8fafc;
-  }
-
-  input:focus {
-    border-color: var(--accent);
-    background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
-  }
-
-  button {
-    padding: 0.85rem 1.3rem;
-    border: none;
-    border-radius: 14px;
-    background: var(--accent-gradient);
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: transform 0.15s ease, opacity 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-
-  button:hover { opacity: 0.95; transform: scale(1.02); }
-  button:active { transform: scale(0.98); }
-
-  /* A2UI Surfaces */
-  .a2card {
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 1.1rem;
-    background: #ffffff;
-    box-shadow: var(--shadow-md);
-    max-width: 100%;
-  }
-
-  .a2card + .a2card, .a2col > .a2card { margin-top: 0.6rem; }
-  .a2col { display: flex; flex-direction: column; gap: 0.5rem; }
-  .a2row { display: flex; flex-direction: row; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
-  .a2row.between { justify-content: space-between; }
-  .a2text { margin: 0; line-height: 1.45; }
-  .a2text.a2-h1 { font-size: 1.4rem; font-weight: 700; color: var(--text-main); }
-  .a2text.a2-h2 { font-size: 1.2rem; font-weight: 700; color: var(--text-main); }
-  .a2text.a2-h3 { font-size: 1.05rem; font-weight: 600; color: var(--text-main); }
-  .a2text.a2-h4 { font-size: 0.95rem; font-weight: 600; color: var(--text-main); }
-  .a2text.a2-caption { font-size: 0.825rem; color: var(--text-muted); }
-  .a2divider { border: none; border-top: 1px solid var(--border); margin: 0.5rem 0; width: 100%; }
-  .a2img { max-width: 100%; border-radius: 10px; display: block; box-shadow: var(--shadow-sm); }
-  .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-size: 1.25rem; line-height: 1; vertical-align: middle; color: var(--accent); }
+@media (max-width:560px){
+  .msg{max-width:94%;}
+  .starters{grid-template-columns:1fr;}
+  .brand-sub{display:none;}
+  #log{padding-top:1rem;}
+}
 </style>
 </head>
 <body>
+<a class="skip-link" href="#composer-input">Skip to message input</a>
 
 <header>
-  <div class="header-title">
-    <span class="material-symbols-outlined" style="font-size: 1.5rem;">explore</span>
-    <span>Travel Concierge AI</span>
+  <div class="brand">
+    <div class="brand-mark" aria-hidden="true">🧭</div>
+    <div class="brand-text">
+      <div class="brand-name">Travel Concierge</div>
+      <div class="brand-sub">Destinations, itineraries &amp; live conditions</div>
+    </div>
   </div>
-  <div class="status-badge">
-    <div class="status-dot"></div>
-    <span>Online</span>
+  <div class="pill" id="status" data-state="checking" role="status" aria-live="polite">
+    <span class="dot" aria-hidden="true"></span><span id="status-text">Connecting</span>
   </div>
+  <button class="icon-btn" id="theme-btn" type="button" aria-label="Switch colour theme" title="Switch theme">◐</button>
+  <button class="icon-btn" id="reset-btn" type="button" aria-label="Start a new conversation" title="New conversation">✚</button>
 </header>
 
-<div id="log"></div>
-
-<div class="footer-container">
-  <div class="prompt-chips">
-    <button type="button" class="chip" onclick="sendPrompt('Find top attractions in Paris')">🗼 Paris Attractions</button>
-    <button type="button" class="chip" onclick="sendPrompt('Find nearby cafes in Tokyo')">🍣 Tokyo Cafes</button>
-    <button type="button" class="chip" onclick="sendPrompt('Check weather and EUR exchange rate for Rome')">🏛️ Rome Weather & Rates</button>
+<div class="scroll-host">
+  <div id="scroll">
+    <main id="log" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Conversation"></main>
   </div>
-  <form id="form">
-    <input id="input" placeholder="Ask about destinations, places, weather, or exchange rates…" autocomplete="off" autofocus>
-    <button type="submit">
-      <span>Send</span>
-      <span class="material-symbols-outlined" style="font-size: 1.1rem; color: #fff;">send</span>
-    </button>
-  </form>
+  <button class="jump" id="jump" type="button" aria-label="Scroll to latest message">↓</button>
+</div>
+
+<div class="composer-wrap">
+  <div class="composer">
+    <div class="chips" id="chips" role="group" aria-label="Suggested prompts"></div>
+    <form id="form">
+      <label class="sr-only" for="composer-input">Message Travel Concierge</label>
+      <textarea id="composer-input" rows="1" placeholder="Where would you like to go?"
+        autocomplete="off" autocapitalize="sentences" enterkeyhint="send" maxlength="4000"></textarea>
+      <button class="send" id="send" type="submit" aria-label="Send message">➤</button>
+    </form>
+    <div class="hint">Enter to send · Shift+Enter for a new line · Verify prices and entry rules before booking</div>
+  </div>
 </div>
 
 <script>
-const log = document.getElementById("log");
-const form = document.getElementById("form");
-const input = document.getElementById("input");
+"use strict";
+/* ============================================================================
+ * Travel Concierge chat client.
+ *
+ * Changes from the original inline script:
+ *  - Streams the reply over SSE, so a slow multi-tool turn shows progress
+ *    instead of a frozen "…".
+ *  - Renders safe inline markdown (bold, code, links, lists) via DOM text
+ *    nodes. The original dumped raw text, so the model's formatting showed as
+ *    literal asterisks. Nothing here uses innerHTML on model output.
+ *  - Send is disabled while a turn is in flight and the button becomes Stop,
+ *    so a double-tap can't interleave two turns on one context.
+ *  - Identity comes from an HttpOnly cookie set by the proxy; the client no
+ *    longer needs (or is trusted with) a user id.
+ *  - Theme toggle with OS default, persisted; live connection status; jump-to-
+ *    latest; textarea autogrow; retry on a failed turn.
+ * ========================================================================== */
 
-function sendPrompt(promptText) {
-  input.value = promptText;
-  form.dispatchEvent(new Event("submit", { cancelable: true }));
+const $ = (id) => document.getElementById(id);
+const logEl = $("log"), scrollEl = $("scroll"), formEl = $("form");
+const inputEl = $("composer-input"), sendEl = $("send"), jumpEl = $("jump");
+const statusEl = $("status"), statusTextEl = $("status-text");
+
+const STARTERS = [
+  { ico:"🗼", title:"A week in Japan",
+    desc:"Kyoto and Tokyo in late October, mid-range budget",
+    prompt:"Plan a week in Japan for two adults in late October — Kyoto and Tokyo, mid-range budget. What would you prioritise?" },
+  { ico:"🏝️", title:"Somewhere warm",
+    desc:"Under USD 120 a day in December",
+    prompt:"I want somewhere warm in December for under USD 120 a day. What do you recommend and why?" },
+  { ico:"🦁", title:"Safari timing",
+    desc:"When to see the Serengeti migration",
+    prompt:"When should I visit the Serengeti to see the migration, and what should I budget per day?" },
+  { ico:"🥗", title:"Dietary needs",
+    desc:"Vegetarian and nut-allergic in Bali",
+    prompt:"I'm vegetarian and severely allergic to peanuts. Where should I eat in Bali, and what should I watch out for?" },
+];
+
+const CHIPS = [
+  "Weather in Kyoto this week",
+  "Convert USD 2,500 to Japanese yen",
+  "Cheapest catalog destination",
+  "Vegan restaurants near the Eiffel Tower",
+  "Show my saved trips",
+];
+
+/* ------------------------------------------------------------------ theme -- */
+const THEME_KEY = "tc-theme";
+const themes = ["auto", "light", "dark"];
+function applyTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  try { localStorage.setItem(THEME_KEY, t); } catch {}
+  const label = { auto: "Theme: follows system", light: "Theme: light", dark: "Theme: dark" }[t];
+  $("theme-btn").title = label;
+  $("theme-btn").setAttribute("aria-label", label);
+  $("theme-btn").textContent = { auto: "◐", light: "☀", dark: "☾" }[t];
+}
+try { applyTheme(localStorage.getItem(THEME_KEY) || "auto"); } catch { applyTheme("auto"); }
+$("theme-btn").addEventListener("click", () => {
+  const cur = document.documentElement.getAttribute("data-theme") || "auto";
+  applyTheme(themes[(themes.indexOf(cur) + 1) % themes.length]);
+});
+
+/* ------------------------------------------------------------- utilities -- */
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;   // textContent, never innerHTML
+  return e;
+}
+function atBottom() {
+  return scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight < 90;
+}
+function scrollDown(force) {
+  if (force || atBottom()) requestAnimationFrame(() => { scrollEl.scrollTop = scrollEl.scrollHeight; });
+}
+scrollEl.addEventListener("scroll", () => jumpEl.classList.toggle("show", !atBottom()));
+jumpEl.addEventListener("click", () => scrollDown(true));
+
+/* ------------------------------------------------- safe inline markdown --- */
+/* Builds DOM nodes from a restricted markdown subset. No innerHTML anywhere, so
+ * model output cannot inject markup. */
+function inlineInto(parent, text) {
+  const pattern = /(\*\*[^*]+\*\*|__[^_]+__|\*[^*\n]+\*|`[^`]+`|\bhttps?:\/\/[^\s<>"')]+)/g;
+  let last = 0, m;
+  while ((m = pattern.exec(text)) !== null) {
+    if (m.index > last) parent.appendChild(document.createTextNode(text.slice(last, m.index)));
+    const tok = m[0];
+    if (tok.startsWith("**") || tok.startsWith("__")) {
+      parent.appendChild(el("strong", null, tok.slice(2, -2)));
+    } else if (tok.startsWith("`")) {
+      parent.appendChild(el("code", null, tok.slice(1, -1)));
+    } else if (tok.startsWith("*")) {
+      parent.appendChild(el("em", null, tok.slice(1, -1)));
+    } else {
+      const a = el("a", null, tok);
+      a.href = tok; a.target = "_blank"; a.rel = "noopener noreferrer nofollow";
+      parent.appendChild(a);
+    }
+    last = m.index + tok.length;
+  }
+  if (last < text.length) parent.appendChild(document.createTextNode(text.slice(last)));
 }
 
-function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function renderMarkdown(container, raw) {
+  container.textContent = "";
+  const lines = String(raw).replace(/\r\n/g, "\n").split("\n");
+  let list = null, listType = null, para = null;
 
-function bubble(who) {
-  const m = el("div", "msg " + who);
-  const author = el("div", "msg-author", who === "user" ? "You" : "Travel Concierge");
-  const b = el("div", "bubble");
-  m.appendChild(author);
-  m.appendChild(b);
-  log.appendChild(m);
-  log.scrollTop = log.scrollHeight;
-  return b;
+  const closePara = () => { para = null; };
+  const closeList = () => { list = null; listType = null; };
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) { closePara(); closeList(); continue; }
+
+    const bullet = trimmed.match(/^[-*•]\s+(.*)$/);
+    const numbered = trimmed.match(/^(\d+)[.)]\s+(.*)$/);
+    const heading = trimmed.match(/^(#{1,4})\s+(.*)$/);
+
+    if (heading) {
+      closePara(); closeList();
+      const h = el("div", "a2text a2-h" + Math.min(heading[1].length + 1, 4));
+      inlineInto(h, heading[2]);
+      container.appendChild(h);
+      continue;
+    }
+    if (bullet || numbered) {
+      closePara();
+      const wantType = bullet ? "ul" : "ol";
+      if (!list || listType !== wantType) {
+        list = el(wantType); listType = wantType; container.appendChild(list);
+      }
+      const li = el("li");
+      inlineInto(li, bullet ? bullet[1] : numbered[2]);
+      list.appendChild(li);
+      continue;
+    }
+    closeList();
+    if (!para) { para = el("p"); container.appendChild(para); }
+    else para.appendChild(document.createTextNode(" "));
+    inlineInto(para, trimmed);
+  }
 }
 
-/* ----------------------------------------------------------------------------
- * A2UI mini-renderer (v0.8 Basic Catalog subset).
- * -------------------------------------------------------------------------- */
+/* ----------------------------------------------- A2UI v0.8 mini-renderer -- */
 function boundStr(v) {
   if (v == null) return "";
   if (typeof v === "string") return v;
   if (typeof v.literalString === "string") return v.literalString;
+  if (typeof v.literalNumber === "number") return String(v.literalNumber);
+  if (typeof v.literalBoolean === "boolean") return String(v.literalBoolean);
   return "";
 }
-
 function childIds(props) {
   const ids = [];
   if (props && typeof props.child === "string") ids.push(props.child);
   const ch = props && props.children;
-  if (ch && Array.isArray(ch.explicitList)) for (const c of ch.explicitList) if (typeof c === "string") ids.push(c);
+  if (ch && Array.isArray(ch.explicitList)) {
+    for (const c of ch.explicitList) if (typeof c === "string") ids.push(c);
+  }
+  if (Array.isArray(ch)) for (const c of ch) if (typeof c === "string") ids.push(c);
   return ids;
 }
-
-function iconName(n) { return String(n || "").replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/\s+/g, "_").toLowerCase(); }
+const ICONS = {
+  explore:"🧭", place:"📍", restaurant:"🍽", hotel:"🏨", flight:"✈️", train:"🚆",
+  sunny:"☀️", cloud:"☁️", rain:"🌧", snow:"❄️", star:"⭐", money:"💰",
+  calendar:"📅", clock:"🕐", warning:"⚠️", check:"✅", info:"ℹ️", camera:"📷",
+  beach:"🏖", mountain:"⛰", temple:"⛩", museum:"🏛", park:"🌳", bookmark:"🔖",
+};
+function iconGlyph(name) {
+  const key = String(name || "").toLowerCase().replace(/[^a-z]/g, "");
+  for (const k in ICONS) if (key.includes(k)) return ICONS[k];
+  return "•";
+}
 
 function buildNode(id, comps, seen) {
-  if (!id || seen.has(id)) return null;
+  if (!id || seen.has(id)) return null;   // guard against cyclic child refs
   seen.add(id);
   const spec = comps[id];
   if (!spec || typeof spec !== "object") return null;
   const type = Object.keys(spec)[0];
   const props = spec[type] || {};
-  const kids = () => childIds(props).map(cid => buildNode(cid, comps, seen)).filter(Boolean);
+  const kids = () => childIds(props).map((c) => buildNode(c, comps, seen)).filter(Boolean);
 
   switch (type) {
     case "Card": {
-      const d = el("div", "a2card"); kids().forEach(n => d.appendChild(n)); return d;
+      const d = el("div", "a2card");
+      const inner = el("div", "a2col");
+      kids().forEach((n) => inner.appendChild(n));
+      d.appendChild(inner);
+      return d;
     }
-    case "Column":
+    case "Column": {
+      const d = el("div", "a2col"); kids().forEach((n) => d.appendChild(n)); return d;
+    }
     case "List": {
-      const horizontal = type === "List" && props.direction === "horizontal";
-      const d = el("div", horizontal ? "a2row" : "a2col"); kids().forEach(n => d.appendChild(n)); return d;
+      const horiz = props.direction === "horizontal";
+      const d = el("div", horiz ? "a2row" : "a2col");
+      kids().forEach((n) => d.appendChild(n));
+      return d;
     }
     case "Row": {
       const d = el("div", "a2row" + (props.distribution === "spaceBetween" ? " between" : ""));
-      kids().forEach(n => d.appendChild(n)); return d;
+      kids().forEach((n) => d.appendChild(n));
+      return d;
     }
     case "Text": {
-      const t = el("div", "a2text");
       const hint = String(props.usageHint || "body").toLowerCase();
-      if (["h1", "h2", "h3", "h4", "h5", "h6"].includes(hint)) t.classList.add("a2-" + hint);
+      const t = el("div", "a2text");
+      if (/^h[1-6]$/.test(hint)) t.classList.add("a2-h" + Math.min(+hint[1], 4));
       else if (hint === "caption") t.classList.add("a2-caption");
-      t.textContent = boundStr(props.text);
+      inlineInto(t, boundStr(props.text));
       return t;
     }
-    case "Divider":
-      return el("hr", "a2divider");
+    case "Divider": return el("hr", "a2divider");
     case "Image": {
       const src = boundStr(props.url || props.src);
+      // Only http(s). Blocks javascript:/data: URLs from model output.
       if (!/^https?:\/\//i.test(src)) return null;
-      const img = el("img", "a2img"); img.src = src; img.alt = boundStr(props.alt) || ""; return img;
+      const wrap = el("div", "a2img-wrap");
+      const img = el("img", "a2img loading");
+      img.src = src;
+      img.alt = boundStr(props.alt) || "Destination preview";
+      img.loading = "lazy"; img.decoding = "async"; img.referrerPolicy = "no-referrer";
+      img.addEventListener("load", () => img.classList.remove("loading"));
+      img.addEventListener("error", () => {
+        wrap.replaceWith(el("div", "a2text a2-caption", "Preview image unavailable."));
+      });
+      wrap.appendChild(img);
+      return wrap;
     }
     case "Icon": {
-      const s = el("span", "material-symbols-outlined"); s.textContent = iconName(boundStr(props.name) || props.name); return s;
+      const s = el("span", "a2ico", iconGlyph(boundStr(props.name) || props.name));
+      s.setAttribute("aria-hidden", "true");
+      return s;
     }
     default:
-      return null;
+      return null;   // unknown component: skip rather than render junk
   }
 }
 
 function renderSurface(messages, container) {
-  const comps = {};
-  const roots = [];
+  const comps = {}; const roots = [];
   for (const m of messages) {
-    if (m.beginRendering && typeof m.beginRendering.root === "string") roots.push(m.beginRendering.root);
-    const su = m.surfaceUpdate;
-    if (su && Array.isArray(su.components)) for (const c of su.components) if (c && c.id && c.component) comps[c.id] = c.component;
+    if (m && m.beginRendering && typeof m.beginRendering.root === "string") {
+      roots.push(m.beginRendering.root);
+    }
+    const su = m && m.surfaceUpdate;
+    if (su && Array.isArray(su.components)) {
+      for (const c of su.components) if (c && c.id && c.component) comps[c.id] = c.component;
+    }
   }
-  let rootIds = roots.filter(r => comps[r]);
-  if (rootIds.length === 0) {
+  let rootIds = roots.filter((r) => comps[r]);
+  if (!rootIds.length) {
+    // No usable beginRendering: infer roots as components nobody references.
     const referenced = new Set();
-    for (const id in comps) { const spec = comps[id]; childIds(spec[Object.keys(spec)[0]] || {}).forEach(c => referenced.add(c)); }
-    rootIds = Object.keys(comps).filter(id => !referenced.has(id));
+    for (const id in comps) {
+      const spec = comps[id];
+      childIds(spec[Object.keys(spec)[0]] || {}).forEach((c) => referenced.add(c));
+    }
+    rootIds = Object.keys(comps).filter((id) => !referenced.has(id));
   }
   let drew = false;
-  for (const rid of rootIds) { const node = buildNode(rid, comps, new Set()); if (node) { container.appendChild(node); drew = true; } }
+  for (const rid of rootIds) {
+    const node = buildNode(rid, comps, new Set());
+    if (node) { container.appendChild(node); drew = true; }
+  }
   return drew;
 }
 
 function flattenText(messages) {
   const out = [];
   for (const m of messages) {
-    const su = m.surfaceUpdate;
-    if (su && Array.isArray(su.components)) for (const c of su.components) if (c && c.component && c.component.Text) out.push(boundStr(c.component.Text.text));
+    const su = m && m.surfaceUpdate;
+    if (su && Array.isArray(su.components)) {
+      for (const c of su.components) {
+        if (c && c.component && c.component.Text) out.push(boundStr(c.component.Text.text));
+      }
+    }
   }
   return out.join("\n").trim();
 }
 
-function renderReply(b, parts) {
-  b.textContent = "";
-  const texts = parts.filter(p => p && (p.kind === "text" || (!p.kind && p.text))).map(p => p.text || "");
-  const a2ui = parts.filter(p => p && p.kind === "a2ui" && p.data).map(p => p.data);
-
-  const textStr = texts.join("\n").trim();
-  if (textStr) b.appendChild(el("div", null, textStr));
-
-  if (a2ui.length) {
-    b.classList.add("rich");
-    if (!renderSurface(a2ui, b)) b.appendChild(el("div", null, flattenText(a2ui) || "(no card content)"));
-  }
-  if (!b.childNodes.length) b.textContent = "(no response)";
-  log.scrollTop = log.scrollHeight;
+/* ------------------------------------------------------------- messages -- */
+function addMessage(who) {
+  const wrap = el("div", "msg " + who);
+  const meta = el("div", "msg-meta");
+  meta.appendChild(el("span", null, who === "user" ? "You" : "Travel Concierge"));
+  const actions = el("div", "msg-actions");
+  if (who === "agent") meta.appendChild(actions);
+  const bubble = el("div", "bubble");
+  wrap.append(meta, bubble);
+  logEl.appendChild(wrap);
+  scrollDown(true);
+  return { wrap, bubble, actions };
 }
 
-form.addEventListener("submit", async (ev) => {
-  ev.preventDefault();
-  const text = input.value.trim();
-  if (!text) return;
-  bubble("user").textContent = text;
-  input.value = "";
-  const b = bubble("agent"); b.textContent = "…";
-  const endpoint = window.location.hostname.includes("github.io")
-    ? "https://travel-concierge-frontend-732872429781.us-east1.run.app/chat"
-    : "/chat";
+function showTyping(bubble) {
+  bubble.textContent = "";
+  const t = el("div", "typing");
+  t.append(el("i"), el("i"), el("i"));
+  t.setAttribute("aria-label", "Travel Concierge is thinking");
+  bubble.appendChild(t);
+  return t;
+}
+
+function addCopyButton(actions, getText) {
+  const btn = el("button", "mini-btn", "Copy");
+  btn.type = "button";
+  btn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(getText());
+      btn.textContent = "Copied";
+      setTimeout(() => { btn.textContent = "Copy"; }, 1600);
+    } catch { btn.textContent = "Failed"; }
+  });
+  actions.appendChild(btn);
+}
+
+/* Accumulates a turn's parts and repaints, so streamed text appears live. */
+function makeSink(bubble, actions) {
+  const texts = []; const surfaces = [];
+  return {
+    push(part) {
+      if (!part) return;
+      if (part.kind === "a2ui" && part.data) surfaces.push(part.data);
+      else if (typeof part.text === "string") texts.push(part.text);
+      this.paint();
+    },
+    paint() {
+      bubble.textContent = "";
+      bubble.classList.remove("rich");
+      const joined = texts.join("").trim();
+      if (joined) {
+        const holder = el("div");
+        renderMarkdown(holder, joined);
+        bubble.appendChild(holder);
+      }
+      if (surfaces.length) {
+        bubble.classList.add("rich");
+        const host = el("div");
+        if (!renderSurface(surfaces, host)) {
+          const fb = flattenText(surfaces);
+          if (fb) renderMarkdown(host, fb);
+        }
+        if (host.childNodes.length) bubble.appendChild(host);
+      }
+      if (!bubble.childNodes.length) {
+        bubble.appendChild(el("div", null, "(No content returned.)"));
+      }
+      scrollDown();
+    },
+    finish() {
+      this.paint();
+      const plain = () => (texts.join("").trim() || flattenText(surfaces));
+      if (plain()) addCopyButton(actions, plain);
+    },
+    empty() { return !texts.length && !surfaces.length; },
+  };
+}
+
+/* ------------------------------------------------------------ transport -- */
+let inFlight = null;   // AbortController for the active turn
+
+function setBusy(busy) {
+  inputEl.disabled = false;               // keep typing allowed while waiting
+  sendEl.classList.toggle("stop", busy);
+  sendEl.textContent = busy ? "■" : "➤";
+  sendEl.setAttribute("aria-label", busy ? "Stop generating" : "Send message");
+  sendEl.disabled = false;
+}
+
+function setStatus(state, text) {
+  statusEl.dataset.state = state;
+  statusTextEl.textContent = text;
+}
+
+/* SSE first (live progress); falls back to the plain JSON endpoint. */
+async function streamTurn(message, sink, statusEl_, controller) {
+  const res = await fetch("/chat/stream", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message }),
+    signal: controller.signal,
+    credentials: "same-origin",
+  });
+  if (!res.ok || !res.body) throw new Error("stream-unavailable:" + res.status);
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "", sawPart = false, failure = null;
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const frames = buffer.split("\n\n");
+    buffer = frames.pop() || "";
+    for (const frame of frames) {
+      let name = "message", raw = "";
+      for (const line of frame.split("\n")) {
+        if (line.startsWith("event:")) name = line.slice(6).trim();
+        else if (line.startsWith("data:")) raw += line.slice(5).trim();
+      }
+      if (!raw) continue;
+      let payload;
+      try { payload = JSON.parse(raw); } catch { continue; }
+
+      if (name === "part") {
+        if (!sawPart) { sawPart = true; statusEl_.remove(); }
+        sink.push(payload);
+      } else if (name === "status" && !sawPart) {
+        const label = { working: "Looking things up…", submitted: "Thinking…" }[payload.state];
+        if (label) statusEl_.textContent = label;
+      } else if (name === "error") {
+        failure = payload.message || "Something went wrong.";
+      }
+    }
+  }
+  if (!sawPart) statusEl_.remove();
+  if (failure && sink.empty()) throw new Error(failure);
+}
+
+async function plainTurn(message, sink, controller) {
+  const res = await fetch("/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message }),
+    signal: controller.signal,
+    credentials: "same-origin",
+  });
+  const raw = await res.text();
+  let data;
+  try { data = JSON.parse(raw); }
+  catch { throw new Error(`The server returned an unreadable response (HTTP ${res.status}).`); }
+  if (!res.ok) throw new Error(data.error || data.detail || `Request failed (HTTP ${res.status}).`);
+  for (const p of data.parts || []) sink.push(p);
+}
+
+async function send(message) {
+  if (inFlight) return;
+  const welcome = logEl.querySelector(".welcome");
+  if (welcome) welcome.remove();
+
+  addMessage("user").bubble.textContent = message;
+
+  const { bubble, actions } = addMessage("agent");
+  const thinking = showTyping(bubble);
+  const status = el("div", "status-line", "Thinking…");
+  bubble.appendChild(status);
+
+  const sink = makeSink(bubble, actions);
+  const controller = new AbortController();
+  inFlight = controller;
+  setBusy(true);
+  setStatus("online", "Working");
+
   try {
-    const res = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text }) });
-    const raw = await res.text();
-    let data;
-    try { data = JSON.parse(raw); }
-    catch { throw new Error(`Server returned non-JSON (HTTP ${res.status}). ${raw.slice(0, 300)}`); }
-    renderReply(b, data.parts || []);
-  } catch (e) {
-    b.textContent = "Error: " + e.message;
+    try {
+      await streamTurn(message, sink, status, controller);
+    } catch (err) {
+      if (err.name === "AbortError") throw err;
+      if (String(err.message).startsWith("stream-unavailable")) {
+        // Older proxy without /chat/stream — fall back silently.
+        await plainTurn(message, sink, controller);
+      } else { throw err; }
+    }
+    thinking.remove(); status.remove();
+    sink.finish();
+    setStatus("online", "Online");
+  } catch (err) {
+    thinking.remove(); status.remove();
+    if (err.name === "AbortError") {
+      if (sink.empty()) {
+        bubble.classList.add("err");
+        bubble.textContent = "Stopped.";
+      } else { sink.paint(); }
+    } else {
+      bubble.classList.add("err");
+      bubble.textContent = "";
+      bubble.appendChild(el("div", null, err.message || "Something went wrong."));
+      const retry = el("button", "mini-btn", "Retry");
+      retry.type = "button";
+      retry.style.marginTop = ".5rem";
+      retry.addEventListener("click", () => {
+        bubble.closest(".msg").remove();
+        send(message);
+      });
+      bubble.appendChild(retry);
+      setStatus("offline", "Error");
+    }
+  } finally {
+    inFlight = null;
+    setBusy(false);
+    scrollDown();
+  }
+}
+
+/* ------------------------------------------------------------- composer -- */
+function autogrow() {
+  inputEl.style.height = "auto";
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 160) + "px";
+}
+inputEl.addEventListener("input", autogrow);
+inputEl.addEventListener("keydown", (ev) => {
+  if (ev.key === "Enter" && !ev.shiftKey && !ev.isComposing) {
+    ev.preventDefault();
+    formEl.requestSubmit();
   }
 });
+
+formEl.addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  if (inFlight) { inFlight.abort(); return; }   // button doubles as Stop
+  const text = inputEl.value.trim();
+  if (!text) return;
+  inputEl.value = ""; autogrow(); inputEl.focus();
+  send(text);
+});
+
+$("reset-btn").addEventListener("click", async () => {
+  if (inFlight) inFlight.abort();
+  try { await fetch("/session/reset", { method: "POST", credentials: "same-origin" }); } catch {}
+  logEl.textContent = "";
+  renderWelcome();
+  inputEl.focus();
+});
+
+/* -------------------------------------------------------------- welcome -- */
+function renderWelcome() {
+  const w = el("div", "welcome");
+  w.appendChild(el("h1", null, "Where would you like to go?"));
+  w.appendChild(el("p", null,
+    "I plan trips end to end — destinations, itineraries, live weather and exchange rates. " +
+    "Tell me your dates, budget, and anything I should work around."));
+  const grid = el("div", "starters");
+  for (const s of STARTERS) {
+    const b = el("button", "starter"); b.type = "button";
+    b.appendChild(el("span", "starter-ico", s.ico));
+    const txt = el("div");
+    txt.appendChild(el("div", "starter-title", s.title));
+    txt.appendChild(el("div", "starter-desc", s.desc));
+    b.appendChild(txt);
+    b.addEventListener("click", () => send(s.prompt));
+    grid.appendChild(b);
+  }
+  w.appendChild(grid);
+  logEl.appendChild(w);
+}
+
+const chipsEl = $("chips");
+for (const c of CHIPS) {
+  const b = el("button", "chip", c);
+  b.type = "button";
+  b.addEventListener("click", () => { inputEl.value = c; autogrow(); inputEl.focus(); });
+  chipsEl.appendChild(b);
+}
+
+/* ------------------------------------------------------- health polling -- */
+async function checkHealth() {
+  try {
+    const res = await fetch("/readyz", { credentials: "same-origin" });
+    if (res.ok) setStatus("online", "Online");
+    else setStatus("offline", res.status === 503 ? "Unavailable" : "Degraded");
+  } catch {
+    setStatus("offline", "Offline");
+  }
+}
+
+renderWelcome();
+setBusy(false);
+checkHealth();
+setInterval(checkHealth, 60000);
+window.addEventListener("online", checkHealth);
+window.addEventListener("offline", () => setStatus("offline", "Offline"));
+inputEl.focus();
 </script>
 </body>
 </html>
